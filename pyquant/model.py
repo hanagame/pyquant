@@ -6,6 +6,7 @@ __author__ = 'Michael Liao'
 from decimal import Decimal
 
 import time
+import itertools
 import logging
 
 from pyquant import database
@@ -13,15 +14,13 @@ from pyquant.xdict import Dict
 
 # generate next id:
 
-_g_next = 0
+idcounter = itertools.count()
 
 def nextid():
     '''
     generate next bigint.
     '''
-    global _g_next
-    _g_next = _g_next + 1
-    return (int(time.time()) << 20) + (_g_next % 0x100000)
+    return (int(time.time()) << 20) + (next(idcounter) % 0x100000)
 
 def _create_args_string(num):
     return ', '.join('?' * num)

@@ -19,7 +19,16 @@ class Symbol(model.Model):
     currency = model.StringField()
     index = model.BooleanField(default=False)
 
+class Account(model.Model):
+    name = model.StringField()
+    exchange_id = model.IntegerField()
+    currency = model.StringField()
+    kind = model.StringField()
+    symbol = model.StringField()
+    balance = model.FloatField()
+
 class K1DPrice(model.Model):
+    ' K price for 1 day '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
     price_date = model.DateField()
@@ -31,6 +40,7 @@ class K1DPrice(model.Model):
     volume = model.FloatField()
 
 class K1MPrice(model.Model):
+    ' K price for 1 min '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
     price_date = model.DateField()
@@ -42,6 +52,7 @@ class K1MPrice(model.Model):
     volume = model.FloatField()
 
 class K5MPrice(model.Model):
+    ' K price for 5 min '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
     price_date = model.DateField()
@@ -53,6 +64,7 @@ class K5MPrice(model.Model):
     volume = model.FloatField()
 
 class K10MPrice(model.Model):
+    ' K price for 10 min '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
     price_date = model.DateField()
@@ -64,6 +76,7 @@ class K10MPrice(model.Model):
     volume = model.FloatField()
 
 class K1HPrice(model.Model):
+    ' K price for 1 hour '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
     price_date = model.DateField()

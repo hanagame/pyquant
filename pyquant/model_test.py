@@ -11,7 +11,7 @@ import unittest
 from pyquant import database
 from pyquant import model
 
-class Simple(model.Model):
+class TestSimple(model.Model):
     name = model.StringField()
     gender = model.BooleanField()
     age = model.IntegerField(default=20)
@@ -22,15 +22,15 @@ class Simple(model.Model):
 class TestModel(unittest.TestCase):
 
     def setUp(self):
-        database.execute('drop table if exists %s' % Simple.__table__)
-        database.execute(Simple.__ddl__)
+        database.execute('drop table if exists %s' % TestSimple.__table__)
+        database.execute(TestSimple.__ddl__)
 
     def test_crud(self):
         now = datetime(2016, 11, 15, 1, 2, 3)
-        s = Simple(name='Bob', gender=True, birth=date(2001, 1, 1), current=now)
+        s = TestSimple(name='Bob', gender=True, birth=date(2001, 1, 1), current=now)
         s.save()
         # query:
-        q = Simple.find(s.id)
+        q = TestSimple.find(s.id)
         self.assertIsNotNone(q)
         self.assertEqual(q.id, s.id)
         self.assertEqual(q.name, 'Bob')
@@ -44,7 +44,7 @@ class TestModel(unittest.TestCase):
         s.notify_at = 99099.99
         s.update()
         # query again:
-        q2 = Simple.find(s.id)
+        q2 = TestSimple.find(s.id)
         self.assertIsNotNone(q2)
         self.assertEqual(q2.id, s.id)
         self.assertEqual(q2.name, 'Tom')
@@ -53,23 +53,23 @@ class TestModel(unittest.TestCase):
         self.assertAlmostEqual(q2.notify_at, 99099.99, delta=1.0)
         # remove:
         q2.remove()
-        rs = Simple.findAll(orderby='id')
+        rs = TestSimple.findAll(orderby='id')
         self.assertEqual(len(rs), 0)
 
     def test_findNumber(self):
         for name in ['Bob', 'Tom', 'Alice', 'Newton', 'Frank', 'Grace']:
-            s = Simple(name=name, gender=True, birth=date(2011, 1, 1), current=datetime.now())
+            s = TestSimple(name=name, gender=True, birth=date(2011, 1, 1), current=datetime.now())
             s.save()
-        count = Simple.findNumber('count(*)')
+        count = TestSimple.findNumber('count(*)')
         self.assertEqual(count, 6)
-        count = Simple.findNumber('count(*)', 'name like ?', ('%o%',))
+        count = TestSimple.findNumber('count(*)', 'name like ?', ('%o%',))
         self.assertEqual(count, 3)
-        avg = Simple.findNumber('avg(age)')
+        avg = TestSimple.findNumber('avg(age)')
         self.assertEqual(avg, 20.0, 0.1)
 
     def test_nextid(self):
         s = set()
-        N = 10000
+        N = 100000
         for i in range(N):
             x = model.nextid()
             s.add(x)
