@@ -5,5 +5,11 @@
         "user": "root",
         "passwd": "password",
         "db": "pyquant"
+    },
+    "vendors": {
+        "tushare_vendor": {
+            "user": "root",
+            "password": "pass"
+        }
     }
 }
