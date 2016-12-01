@@ -5,19 +5,26 @@ __author__ = 'Michael Liao'
 from pyquant import model
 
 class Vendor(model.Model):
+    code = model.StringField()
     name = model.StringField()
     url = model.StringField()
 
 class Exchange(model.Model):
+    code = model.StringField()
     name = model.StringField()
     currency = model.StringField()
     timezone = model.StringField()
 
 class Symbol(model.Model):
     exchange_id = model.IntegerField()
+    code = model.StringField()
     name = model.StringField()
     currency = model.StringField()
-    index = model.BooleanField(default=False)
+    industry = model.StringField(default='')
+    area = model.StringField(default='')
+    outstanding = model.FloatField(default=0.0)
+    total = model.FloatField(default=0.0)
+    is_index = model.BooleanField(default=False)
 
 class Account(model.Model):
     name = model.StringField()
@@ -86,14 +93,3 @@ class K1HPrice(model.Model):
     close_price = model.FloatField()
     adj_close_price = model.FloatField()
     volume = model.FloatField()
-
-if __name__ == '__main__':
-    import sys
-    if (len(sys.argv) == 1):
-        print('Usage:\npython models.py --create-schema')
-        exit(0)
-    createschema = len(list(filter(lambda s: s=='--create-schema', sys.argv))) > 0
-    print(createschema)
-    models = [Exchange, Vendor]
-    for m in models:
-        print('init %s...' % m.__table__)
