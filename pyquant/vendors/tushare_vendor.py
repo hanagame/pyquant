@@ -9,12 +9,14 @@ $ pip install tushare
 
 __author__ = 'Michael Liao'
 
+import time
 import logging
 import tushare
 
-from datetime import date
+from datetime import date, datetime, timedelta
 
-from pyquant.models import Vendor, Exchange, Symbol
+from pyquant.models import Vendor, Exchange, Symbol, K1DPrice
+from pyquant.xdict import Dict
 
 def _createVendor():
     vs = Vendor.findAll(where='code=?', args=('tushare',))
@@ -42,8 +44,6 @@ class DataVendor(object):
         self.vendor = _createVendor()
         self.sse = _createExchange('SSE', '上海证券交易所')
         self.sze = _createExchange('SZE', '深圳证券交易所')
-        es = Exchange.findAll(where='code =?', args=('SSE', 'SZE'))
-
         logging.info('Init tushare ok.')
 
     def update(self):
@@ -51,21 +51,82 @@ class DataVendor(object):
         Called by background data-fetch-thread.
         '''
         logging.info('Update...')
-        if self._need_refresh_index():
+        if self._need_refresh_symbols():
             logging.info('Refresh stock list...')
-            self._update_index()
+            self._update_symbols()
+        self._update_k1d('600036')
 
     def query(self, symbol, tickType, fromTime, endTime):
         pass
 
-    def _need_refresh_index(self):
-        if getattr(self, 'need_refresh_index', None):
-            return False
-        self.need_refresh_index = True
-        return True
+    def _need_refresh_symbols(self):
+        if time.time() - self.vendor.updated_at > 28800:
+            return True
+        return False
 
-    def _update_index(self):
+    def _update_k1d(self, code):
+        # get last date since fetched:
+        symbols = Symbol.findAll(where='code=?', args=(code,))
+        symbol = symbols[0]
+        lasts = K1DPrice.findAll(where='symbol_id=?', args=(symbol.id,), orderby='price_date desc', limit=1)
+        if len(lasts) == 0:
+            start = date(1991, 1, 1)
+            logging.info('Fetch from beginning...')
+        else:
+            start = lasts[0].price_date + timedelta(days=1)
+            logging.info('Fetch from %s...' % start)
+        kd = tushare.get_k_data(code, start=str(start))
+        saved = 0
+        for i in kd.index:
+            kdata = Dict(**kd.ix[i])
+            kp = K1DPrice(vendor_id=self.vendor.id, \
+                          symbol_id=symbol.id, \
+                          price_date=kdata.date, \
+                          open_price=kdata.open, \
+                          high_price=kdata.high, \
+                          low_price=kdata.low, \
+                          close_price=kdata.close, \
+                          adj_close_price=kdata.close, \
+                          volume=kdata.volume)
+            kp.save()
+            saved = saved + 1
+        logging.info('%s: saved %s.' % (code, saved))
+
+    def _update_symbols(self):
         ss = tushare.get_stock_basics()
+        updated = 0
+        saved = 0
         for code in ss.index:
-            stock = dict(ss.ix[code])
-            # todo: save stock...
+            stock = Dict(**ss.ix[code])
+            symbols = Symbol.findAll(where='code=?', args=(code,))
+            if len(symbols) > 0:
+                symbol = symbols[0]
+                symbol.name=stock.name
+                symbol.industry=stock.industry
+                symbol.area=stock.area
+                symbol.outstanding=stock.outstanding
+                symbol.totals=stock.totals
+                symbol.update()
+                updated = updated + 1
+            else:
+                symbol = Symbol(exchange_id=self._get_exchange_id(code), \
+                                code=code, \
+                                name=stock.name, \
+                                currency='CNY', \
+                                industry=stock.industry, \
+                                area=stock.area, \
+                                outstanding=stock.outstanding, \
+                                total=stock.totals, \
+                                is_index=False)
+                symbol.save()
+                saved = saved + 1
+        logging.info('created %s, updated %s.' % (saved, updated))
+
+    def _get_exchange_id(self, code):
+        if code.startswith('0'):
+            return self.sze.id
+        if code.startswith('1'):
+            return self.sze.id
+        if code.startswith('3'):
+            return self.sze.id
+        return self.sse.id

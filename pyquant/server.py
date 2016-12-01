@@ -15,6 +15,7 @@ logging.basicConfig(format='%(levelname)s %(threadName)s %(asctime)s: %(message)
 from flask import Flask, render_template
 
 from pyquant import configs
+from pyquant.models import Exchange, Symbol, K1DPrice
 
 app = Flask('pyquant', template_folder=os.path.join(os.path.dirname(__file__) , 'templates'))
 
@@ -22,9 +23,16 @@ app = Flask('pyquant', template_folder=os.path.join(os.path.dirname(__file__) , 
 def index():
     return 'It works!'
 
-@app.route('/btc')
-def btc():
-    return render_template('btc.html')
+@app.route('/symbols')
+def symbols():
+    symbols = Symbol.findAll(orderby='code')
+    return render_template('symbols.html', dict(symbols=symbols))
+
+@app.route('/k1d')
+    symbols = Symbol.findAll(where='code=?', args=('600036',))
+    symbol = symbols[0]
+    kdata = K1DPrice.findAll(where='symbol_id=?', args=(symbol.id,), orderby='price_date desc', limit=365)
+    return render_template('btc.html', dict(kdata: kdata))
 
 def _start():
     _startfetchthreads()
@@ -48,7 +56,7 @@ def _startvendor(vendor):
             vendor.update()
             n = 1
         except Exception as e:
-            logging.warn(e)
+            logging.exception('update failed.')
             if n < 16:
                 n = n * 2
         time.sleep(n)

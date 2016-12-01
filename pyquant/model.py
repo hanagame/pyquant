@@ -153,6 +153,8 @@ class Model(Dict, metaclass=ModelMetaclass):
             sql.append(where)
         if args is None:
             args = []
+        else:
+            args = list(args)
         orderby = kw.get('orderby', None)
         if orderby:
             sql.append('order by')
