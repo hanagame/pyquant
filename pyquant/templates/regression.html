@@ -1,0 +1,51 @@
+{% extends '_base.html' %}
+
+{% block title %} Regression {% endblock %}
+
+{% block head %}
+
+<script>
+$(function () {
+	var vm = new Vue({
+		el: '#vm',
+		data: {
+			pycode: ''
+		},
+		created: function () {
+			//
+		}
+	});
+});
+</script>
+
+{% endblock %}
+
+{% block main %}
+
+<div class="uk-grid">
+	<div class="uk-width-1-1">
+	    <div id="vm">
+			<form class="uk-form">
+				<div class="uk-form-row">
+					<input type="text" value="2015-01-01" data-uk-datepicker="{format:'YYYY-MM-DD'}">
+					<input type="text" value="2016-12-01" data-uk-datepicker="{format:'YYYY-MM-DD'}">
+					<button type="button" class="uk-button uk-button-primary uk-float-right"><i class="uk-icon-play"></i> Run</button>
+				</div>
+				<div class="uk-form-row">
+					<textarea cols="" rows="30" class="uk-width-1-1" style="font-family: Consolas, monospace, serif; resize: none;">
+import numpy as np
+import pandas as pd
+
+def init(ctx):
+    ctx.amount = 1000000
+
+def ontick(ctx, data):
+    pass
+</textarea>
+				</div>
+			</form>
+	    </div>
+	</div>
+</div>
+
+{% endblock %}

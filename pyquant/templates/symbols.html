@@ -1,1 +1,59 @@
-<h1>BTC</h1>
+{% extends '_base.html' %}
+
+{% block title %} Symbols {% endblock %}
+
+{% block head %}
+
+<script>
+$(function () {
+	var vm = new Vue({
+		el: '#vm',
+		data: {
+			symbols: []
+		},
+		created: function () {
+			var that = this;
+			that.$resource('/api/symbols').get().then(function (resp) {
+				resp.json().then(function (r) {
+					that.symbols = r.symbols;
+				});
+			}, alertError);
+		}
+	});
+});
+</script>
+
+{% endblock %}
+
+{% block main %}
+
+<div class="uk-grid">
+    <div class="uk-width-1-1">
+        <div id="vm">
+		    <table class="uk-table uk-table-hover">
+			    <thead>
+				    <tr>
+					    <th width="10%">Code</th>
+    					<th width="50%">Name</th>
+	    				<th width="10%">Industry</th>
+	    				<th width="10%">Area</th>
+		    			<th width="10%">Outstanding</th>
+			    		<th width="10%">Total</th>
+	    			</tr>
+    			</thead>
+		    	<tbody>
+			    	<tr v-for="s in symbols">
+				    	<td v-text="s.code"></td>
+    					<td v-text="s.name"></td>
+	    				<td v-text="s.industry"></td>
+					    <td v-text="s.area"></td>
+					    <td v-text="s.outstanding"></td>
+					    <td v-text="s.total"></td>
+				    </tr>
+			    </tbody>
+		    </table>
+        </div>
+	</div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %} TITLE {% endblock %} - pyquant</title>
+    <link rel="stylesheet" href="/static/css/uikit.css" />
+    <link rel="stylesheet" href="/static/css/uikit.almost-flat.css" />
+    <link rel="stylesheet" href="/static/css/components/datepicker.min.css" />
+    <link rel="stylesheet" href="/static/css/components/datepicker.almost-flat.min.css" />
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/underscore.min.js"></script>
+    <script type="text/javascript" src="/static/js/uikit.min.js"></script>
+    <script type="text/javascript" src="/static/js/components/datepicker.min.js"></script>
+    <script type="text/javascript" src="/static/js/highstock.js"></script>
+    <script type="text/javascript" src="/static/js/vue.js"></script>
+    <script type="text/javascript" src="/static/js/vue-resource.min.js"></script>
+    <script type="text/javascript" src="/static/js/pyquant.js"></script>
+<script>
+
+function alertError(resp) {
+	if (resp.body) {
+		resp = resp.body;
+	}
+	UIkit.modal.alert(resp && resp.message || resp.error || resp);
+}
+
+</script>
+
+    {% block head %}<!-- block head  -->{% endblock %}
+</head>
+
+<body>
+    <div id="header" class="uk-navbar uk-navbar-attached" style="z-index:9999; position:fixed; top:0; left: 0; right: 0;">
+        <div class="uk-container uk-container-center">
+            <div class="uk-navbar uk-navbar-attached">
+                <a href="/" target="_blank" class="uk-navbar-brand">pyquant</a>
+                <ul id="ul-navbar" class="uk-navbar-nav">
+                    <li><a href="/symbols"><i class="uk-icon-list-ul"></i> Symbols</a></li>
+                    <li><a href="/k1d"><i class="uk-icon-bar-chart"></i> Price</a></li>
+                    <li><a href="/regression"><i class="uk-icon-reply-all"></i> Regression</a></li>
+                </ul>
+                <div class="uk-navbar-content">
+                    <form id="form-search" class="uk-form uk-margin-remove uk-display-inline-block">
+                        <input type="text" placeholder="Search">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height:50px"><!-- placeholder --></div>
+
+    <div id="main">
+        <div class="uk-container uk-container-center">
+                {% block main %}{% endblock %}
+        </div>
+    </div>
+
+    <!--<div id="footer">
+        <div class="uk-container uk-container-center">
+            <div class="uk-grid">
+                <div class="uk-width-1-1">
+                    <p>pyquant</p>
+                </div>
+            </div>
+        </div>
+    </div>-->
+</body>
+</html>

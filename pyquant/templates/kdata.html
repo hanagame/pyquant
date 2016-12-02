@@ -1,0 +1,100 @@
+{% extends '_base.html' %}
+
+{% block title %} KData {% endblock %}
+
+{% block head %}
+
+<script>
+
+var CODE = '{{ code }}';
+
+function processData(kdata) {
+	return kdata.map(function (k, index) {
+		return {
+			x: index,
+			open: k.open_price,
+			high: k.high_price,
+			low: k.low_price,
+			close: k.close_price,
+			color: k.close_price < k.open_price ? '#ff0000' : '#00ff00'
+		}
+	});
+}
+
+function initChart(data) {
+	Highcharts.stockChart('kchart', {
+		rangeSelector: {
+			selected: 1
+		},
+		title: {
+			text: data.symbol.name
+		},
+		pointStart: new Date(data.kdata[0].price_date).getTime(),
+		pointInerval: 1,
+		pointIntervalUnit: 'day',
+		series: [{
+			type: 'candlestick',
+			name: data.symbol.name,
+			data: processData(data.kdata),
+        }]
+	});
+}
+
+$(function () {
+	var vm = new Vue({
+		el: '#vm',
+		data: {
+			symbol: {},
+			kdata: []
+		},
+		created: function () {
+			var that = this;
+			that.$resource('/api/'+CODE+'/kdata').get().then(function (resp) {
+				resp.json().then(function (r) {
+					that.symbol = r.symbol;
+					that.kdata = r.kdata;
+					initChart(that);
+				});
+			}, alertError);
+		}
+	});
+});
+</script>
+
+{% endblock %}
+
+{% block main %}
+
+<div class="uk-grid">
+    <div class="uk-width-1-1">
+        <div id="vm">
+		    <h3><span v-text="symbol.name"></span> <span v-text="symbol.code"></span></h3>
+			<div id="kchart" style="height: 480px">
+			</div>
+		    <table class="uk-table uk-table-hover">
+			    <thead>
+				    <tr>
+					    <th width="25%">Date</th>
+    					<th width="15%">Open</th>
+	    				<th width="15%">High</th>
+	    				<th width="15%">Low</th>
+		    			<th width="15%">Close</th>
+						<th width="15%">Volume</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="k in kdata">
+						<td v-text="k.price_date"></td>
+						<td v-text="k.open_price"></td>
+						<td v-text="k.high_price"></td>
+						<td v-text="k.low_price"></td>
+						<td v-text="k.close_price"></td>
+						<td v-text="k.volume"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+    </div>
+</div>
+
+{% endblock %}
