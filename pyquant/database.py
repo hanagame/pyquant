@@ -5,7 +5,7 @@
 
 __author__ = 'Michael Liao'
 
-import logging;logging.basicConfig(level=logging.INFO)
+import logging
 import functools
 import threading
 import MySQLdb as mysql
@@ -61,7 +61,7 @@ def select(sql, args=(), size=None):
     execute select SQL and return list results.
     '''
     global _tx_local
-    logging.info('SELECT: %s, ARGS: %s' % (sql, args))
+    logging.debug('SELECT: %s, ARGS: %s' % (sql, args))
     cursor = None
     try:
         cursor = _tx_local.connection.cursor(mysql.cursors.DictCursor)
@@ -75,7 +75,7 @@ def select(sql, args=(), size=None):
 @transactional
 def execute(sql, args=()):
     global _tx_local
-    logging.info('EXEC: %s, ARGS: %s' % (sql, args))
+    logging.debug('EXEC: %s, ARGS: %s' % (sql, args))
     cursor = None
     try:
         cursor = _tx_local.connection.cursor(mysql.cursors.DictCursor)
