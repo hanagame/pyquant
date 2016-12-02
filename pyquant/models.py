@@ -38,6 +38,7 @@ class K1DPrice(model.Model):
     ' K price for 1 day '
     vendor_id = model.IntegerField()
     symbol_id = model.IntegerField()
+    code = model.StringField()
     price_date = model.DateField()
     open_price = model.FloatField()
     high_price = model.FloatField()

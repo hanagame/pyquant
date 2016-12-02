@@ -12,12 +12,13 @@ import threading
 
 logging.basicConfig(format='%(levelname)s %(threadName)s %(asctime)s: %(message)s', level=logging.INFO)
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 
 from pyquant import configs
 from pyquant.models import Exchange, Symbol, K1DPrice
 
 app = Flask('pyquant', template_folder=os.path.join(os.path.dirname(__file__) , 'templates'))
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 @app.route('/')
 def index():
@@ -26,13 +27,29 @@ def index():
 @app.route('/symbols')
 def symbols():
     symbols = Symbol.findAll(orderby='code')
-    return render_template('symbols.html', dict(symbols=symbols))
+    return render_template('symbols.html', symbols=symbols)
 
 @app.route('/k1d')
-    symbols = Symbol.findAll(where='code=?', args=('600036',))
+def k1d():
+    return render_template('kdata.html', code='600036')
+
+@app.route('/regression')
+def regression():
+    return render_template('regression.html')
+
+@app.route('/api/<code>/kdata')
+def api_kdata(code):
+    symbols = Symbol.findAll(where='code=?', args=(code,))
     symbol = symbols[0]
-    kdata = K1DPrice.findAll(where='symbol_id=?', args=(symbol.id,), orderby='price_date desc', limit=365)
-    return render_template('btc.html', dict(kdata: kdata))
+    kdata = K1DPrice.findAll(where='code=?', args=(code,), orderby='price_date desc', limit=1000)
+    for k in kdata:
+        k.price_date = str(k.price_date)
+    return jsonify(symbol=symbol, kdata=kdata)
+
+@app.route('/api/symbols')
+def api_symbols():
+    symbols = Symbol.findAll(orderby='code')
+    return jsonify(symbols=symbols)
 
 def _start():
     _startfetchthreads()
@@ -54,10 +71,10 @@ def _startvendor(vendor):
     while True:
         try:
             vendor.update()
-            n = 1
+            n = 10
         except Exception as e:
             logging.exception('update failed.')
-            if n < 16:
+            if n < 160:
                 n = n * 2
         time.sleep(n)
 

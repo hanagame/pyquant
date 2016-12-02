@@ -51,24 +51,17 @@ class DataVendor(object):
         Called by background data-fetch-thread.
         '''
         logging.info('Update...')
-        if self._need_refresh_symbols():
-            logging.info('Refresh stock list...')
-            self._update_symbols()
+        self._update_symbols()
         self._update_k1d('600036')
 
     def query(self, symbol, tickType, fromTime, endTime):
         pass
 
-    def _need_refresh_symbols(self):
-        if time.time() - self.vendor.updated_at > 28800:
-            return True
-        return False
-
     def _update_k1d(self, code):
         # get last date since fetched:
         symbols = Symbol.findAll(where='code=?', args=(code,))
         symbol = symbols[0]
-        lasts = K1DPrice.findAll(where='symbol_id=?', args=(symbol.id,), orderby='price_date desc', limit=1)
+        lasts = K1DPrice.findAll(where='code=?', args=(code,), orderby='price_date desc', limit=1)
         if len(lasts) == 0:
             start = date(1991, 1, 1)
             logging.info('Fetch from beginning...')
@@ -79,20 +72,31 @@ class DataVendor(object):
         saved = 0
         for i in kd.index:
             kdata = Dict(**kd.ix[i])
-            kp = K1DPrice(vendor_id=self.vendor.id, \
-                          symbol_id=symbol.id, \
-                          price_date=kdata.date, \
-                          open_price=kdata.open, \
-                          high_price=kdata.high, \
-                          low_price=kdata.low, \
-                          close_price=kdata.close, \
-                          adj_close_price=kdata.close, \
-                          volume=kdata.volume)
-            kp.save()
-            saved = saved + 1
+            d = datetime.strptime(kdata.date, '%Y-%m-%d').date()
+            if d > start:
+                kp = K1DPrice(vendor_id=self.vendor.id, \
+                              symbol_id=symbol.id, \
+                              code=code, \
+                              price_date=kdata.date, \
+                              open_price=kdata.open, \
+                              high_price=kdata.high, \
+                              low_price=kdata.low, \
+                              close_price=kdata.close, \
+                              adj_close_price=kdata.close, \
+                              volume=kdata.volume)
+                kp.save()
+                saved = saved + 1
         logging.info('%s: saved %s.' % (code, saved))
 
     def _update_symbols(self):
+        last_update = getattr(self, '_last_update_symbols', time.time())
+        count = Symbol.findNumber('count(*)', where='exchange_id=?', args=(self.sse.id,))
+        print(count)
+        if (count > 10) and ((time.time() - last_update) < 28800):
+            logging.info('No need update symbol list.')
+            return
+        logging.info('Update symbol list...')
+        self._last_update_symbols = time.time()
         ss = tushare.get_stock_basics()
         updated = 0
         saved = 0

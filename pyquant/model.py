@@ -200,13 +200,13 @@ class Model(Dict, metaclass=ModelMetaclass):
         args = list(map(self.getValueOrDefault, self.__fields__))
         rows = database.execute(self.__insert__, args)
         if rows != 1:
-            logging.warning('failed to insert record: affected rows: %s' % rows)
+            logging.warning('failed to save: %s rows affected.' % rows)
 
     def update(self):
         args = list(map(self.getValue, self.__fields__))
         rows = database.execute(self.__update__, args)
-        if rows != 1:
-            logging.warning('failed to update by primary key: affected rows: %s' % rows)
+        if rows == 0:
+            logging.debug('Not update: 0 rows affected.')
 
     def remove(self):
         args = [self.getValue('id')]
